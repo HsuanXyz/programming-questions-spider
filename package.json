@@ -1,0 +1,29 @@
+{
+  "name": "programming-questions",
+  "version": "0.0.1",
+  "description": "questions data collection",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./build/main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HsuanXyz/programming-questions.git"
+  },
+  "author": "HsuanLee",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/HsuanXyz/programming-questions/issues"
+  },
+  "homepage": "https://github.com/HsuanXyz/programming-questions#readme",
+  "dependencies": {
+    "@types/mongoose": "^4.7.24",
+    "@types/node": "^8.0.46",
+    "@types/puppeteer": "^0.12.0",
+    "cheerio": "^1.0.0-rc.2",
+    "mongoose": "^4.12.3",
+    "puppeteer": "^0.12.0",
+    "virtual-html": "^2.0.0"
+  }
+}
