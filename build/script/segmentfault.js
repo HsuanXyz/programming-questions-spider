@@ -10,14 +10,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const puppeteer = require("puppeteer");
 const cheerio = require("cheerio");
-const stackoverflow_1 = require("../db/stackoverflow");
+const segmentfault_1 = require("../db/segmentfault");
 class getQuestionsUrlOptions {
 }
 exports.getQuestionsUrlOptions = getQuestionsUrlOptions;
-class StackOverflowCrawler {
+class SegmentFaultCrawler {
     constructor(tagged) {
-        this.url = 'https://stackoverflow.com/search?q=';
-        this.QUESTIONS_LINK_SELECTOR = '#mainbar .question-summary.search-result';
+        this.url = 'https://segmentfault.com/t/';
+        this.QUESTIONS_LINK_SELECTOR = '#qa > section';
         this.tagged = '';
         this.index = 0;
         this.retry = 0;
@@ -38,19 +38,9 @@ class StackOverflowCrawler {
                 const results = questions.map(e => this.parse(e)).filter(e => e.id);
                 if (results.length > 0) {
                     this.saveQuestions(results);
-                    this.index++;
-                    this.retry = 0;
-                    console.log(`第 ${this.index - 1} 页 \t ${results.length}条 \t ${((Date.now() - _start) / 1000).toFixed(3)}s \t 重试 ${this.retry}`);
                 }
-                else if (this.retry < 5) {
-                    console.log(`第 ${this.index - 1} 页 \t ${results.length}条 \t ${((Date.now() - _start) / 1000).toFixed(3)}s \t 重试 ${this.retry}`);
-                    this.retry++;
-                }
-                else {
-                    this.index++;
-                    this.retry = 0;
-                }
-                yield this.page.click('body', { delay: 2020 - (Date.now() - _start) });
+                console.log(`${this.index} \t ${results.length} \t ${(Date.now() - _start) / 1000}s`);
+                this.index++;
             }
             yield this.browser.close();
             return 'done';
@@ -64,24 +54,23 @@ class StackOverflowCrawler {
         });
     }
     saveQuestions(questions) {
-        questions.forEach(q => stackoverflow_1.default(q));
+        questions.forEach(q => segmentfault_1.default(q));
     }
     parse(innerHTML) {
         const $ = cheerio.load(innerHTML);
-        const questionLink = $('div.summary > div.result-link > span > a');
-        const user = $('div.summary > div.started.fr > a');
-        const tagsEl = $('a.post-tag');
-        const tags = tagsEl.map((i, el) => $(el).text()).get().join(',');
+        const questionLink = $('div.summary > h2 > a');
         const link = questionLink.attr('href');
         const id = this.getQuestionIdByUrl(link);
-        const title = questionLink.attr('title');
-        const excerpt = $('div.summary > div.excerpt').text();
-        const votes = $('div.statscontainer > div.stats > div.vote > div > span > strong').text();
-        const answer = $('div.statscontainer > div.stats > div.status.answered-accepted > strong').text();
-        const time = $('div.summary > div.started.fr > span').attr('title');
-        const userName = user.text();
-        const userLink = user.attr('href');
-        return { id, link, title, excerpt, votes, answer, time, userName, userLink, tags, source: 'stackoverflow' };
+        const title = questionLink.text();
+        const tagsEl = $('div.summary > ul.taglist--inline .tagPopup');
+        let marks = Number.parseInt($('div.summary > ul.author.list-inline > li.pull-right').text());
+        marks = Number.isNaN(marks) ? 0 : marks;
+        const tags = tagsEl.map((i, el) => $(el).text()).get().join(',');
+        const votes = Number.parseInt($('div.votes.plus.hidden-xs').text());
+        const answer = Number.parseInt($('div.answers.answered').text());
+        const inputTime = Date.now();
+        const views = $('div.views.hidden-xs > span').text();
+        return { id, title, tags, votes, answer, inputTime, views, marks, source: 'segmentfault' };
     }
     /**
      * 获取问题列表 URL
@@ -89,8 +78,8 @@ class StackOverflowCrawler {
      * @returns {string}
      */
     getQuestionsUrl(options) {
-        const { page, sort = 'votes', pageSize = 50 } = options;
-        return `${this.url}${this.tagged}&page=${page}&pagesize=${pageSize}`;
+        const { page } = options;
+        return `${this.url}${this.tagged}?page=${page}&type=votes`;
     }
     /**
      * 通过问题 URL 获取问题 ID
@@ -98,7 +87,7 @@ class StackOverflowCrawler {
      * @returns {string}
      */
     getQuestionIdByUrl(questionUrl) {
-        const regex = /\/questions\/(\d+)\//gi;
+        const regex = /\/q\/(\d+)/gi;
         const result = regex.exec(questionUrl);
         if (result && result[1]) {
             return result[1].trim();
@@ -108,5 +97,6 @@ class StackOverflowCrawler {
         }
     }
 }
-exports.default = StackOverflowCrawler;
-//# sourceMappingURL=stackoverflow.js.map
+exports.default = SegmentFaultCrawler;
+new SegmentFaultCrawler('javascript').run(450, 1000);
+//# sourceMappingURL=segmentfault.js.map

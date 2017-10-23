@@ -6,11 +6,11 @@ const tags = {
         max: 2200,
         children: {
             'jquery': {
-                q: '[jquery] "jquery" score:3 views:1000 is:question',
+                q: '%5Bjquery%5D+"jquery"+score%3A3+views%3A1000+is%3Aquestion',
                 max: 840
             },
             "angular": {
-                q: '[angular] score:1  is:question',
+                q: '%5Bangular%5D+score%3A1++is%3Aquestion',
                 max: 720
             },
             "angularjs": {
@@ -43,11 +43,35 @@ const tags = {
         q: '%5Bandroid%5D+score%3A2+views%3A1000++is%3Aquestion',
         max: 2100
     },
+    'ios': {
+        q: '%5Bios%5D+score%3A3+views%3A200+is%3Aquestion',
+        max: 1500
+    },
+    'mysql': {
+        q: '%5Bmysql%5D+score%3A2+views%3A200+is%3Aquestion',
+        max: 1170
+    },
+    'unity3d': {
+        q: '%5Bunity3d%5D+is%3Aquestion',
+        max: 500
+    },
+    'ruby-on-rails': {
+        q: '%5Bruby-on-rails%5D+score%3A2+views%3A200+is%3Aquestion',
+        max: 1100
+    },
+    'css': {
+        q: '%5Bcss%5D+score%3A2+views%3A200+is%3Aquestion',
+        max: 1500
+    },
+    'regex': {
+        q: '%5Bregex%5D+score%3A2+views%3A200+is%3Aquestion',
+        max: 580
+    },
 };
 
 async function main() {
-    const crawler = new StackOverflowCrawler(tags['android'].q);
-    await crawler.run(1, tags['android'].max);
+    const crawler = new StackOverflowCrawler(tags['regex'].q);
+    await crawler.run(300, tags['regex'].max);
     console.log('done');
 }
 

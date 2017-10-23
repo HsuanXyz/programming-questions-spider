@@ -1,6 +1,6 @@
 import * as puppeteer from 'puppeteer';
 import * as cheerio from 'cheerio';
-import upsertStackOverflow from "../db/stackoverflow";
+import upsertSegmentFault from "../db/segmentfault";
 
 export class getQuestionsUrlOptions {
     page: number;
@@ -8,10 +8,10 @@ export class getQuestionsUrlOptions {
     pageSize?: number;
 }
 
-export default class StackOverflowCrawler {
+export default class SegmentFaultCrawler {
 
-    url: string = 'https://stackoverflow.com/search?q=';
-    QUESTIONS_LINK_SELECTOR = '#mainbar .question-summary.search-result';
+    url: string = 'https://segmentfault.com/t/';
+    QUESTIONS_LINK_SELECTOR = '#qa > section';
     tagged: string = '';
     index: number = 0;
     page;
@@ -37,17 +37,9 @@ export default class StackOverflowCrawler {
             const results = questions.map(e => this.parse(e)).filter(e => e.id);
             if (results.length > 0) {
                 this.saveQuestions(results);
-                this.index++;
-                this.retry = 0;
-                console.log(`第 ${this.index - 1} 页 \t ${results.length}条 \t ${((Date.now() - _start)/1000).toFixed(3)}s \t 重试 ${this.retry}`)
-            } else if (this.retry < 5) {
-                console.log(`第 ${this.index - 1} 页 \t ${results.length}条 \t ${((Date.now() - _start)/1000).toFixed(3)}s \t 重试 ${this.retry}`);
-                this.retry++
-            } else {
-                this.index++;
-                this.retry = 0;
             }
-            await this.page.click('body',{ delay:2020 - (Date.now() - _start) });
+            console.log(`${this.index} \t ${results.length} \t ${(Date.now() - _start)/1000}s`);
+            this.index++;
 
         }
 
@@ -62,28 +54,25 @@ export default class StackOverflowCrawler {
     }
 
     saveQuestions(questions) {
-        questions.forEach(q => upsertStackOverflow(q));
+        questions.forEach(q => upsertSegmentFault(q));
     }
 
     parse(innerHTML: string) {
         const $ = cheerio.load(innerHTML);
-
-        const questionLink = $('div.summary > div.result-link > span > a');
-        const user = $('div.summary > div.started.fr > a');
-        const tagsEl = $('a.post-tag');
-
-        const tags = tagsEl.map((i, el) => $(el).text()).get().join(',');
+        const questionLink = $('div.summary > h2 > a');
         const link = questionLink.attr('href');
         const id = this.getQuestionIdByUrl(link);
-        const title = questionLink.attr('title');
-        const excerpt = $('div.summary > div.excerpt').text();
-        const votes = $('div.statscontainer > div.stats > div.vote > div > span > strong').text();
-        const answer = $('div.statscontainer > div.stats > div.status.answered-accepted > strong').text();
-        const time = $('div.summary > div.started.fr > span').attr('title');
-        const userName = user.text();
-        const userLink = user.attr('href');
+        const title = questionLink.text();
+        const tagsEl = $('div.summary > ul.taglist--inline .tagPopup');
+        let marks = Number.parseInt($('div.summary > ul.author.list-inline > li.pull-right').text());
+        marks = Number.isNaN(marks) ? 0 : marks;
+        const tags = tagsEl.map((i, el) => $(el).text()).get().join(',');
+        const votes = Number.parseInt($('div.votes.plus.hidden-xs').text());
+        const answer = Number.parseInt($('div.answers.answered').text());
+        const inputTime = Date.now();
+        const views = $('div.views.hidden-xs > span').text();
 
-        return {id, link, title, excerpt, votes, answer, time, userName, userLink, tags, source: 'stackoverflow'}
+        return { id,title, tags, votes, answer, inputTime, views, marks, source: 'segmentfault' }
     }
 
     /**
@@ -92,8 +81,8 @@ export default class StackOverflowCrawler {
      * @returns {string}
      */
     getQuestionsUrl(options: getQuestionsUrlOptions): string {
-        const {page, sort = 'votes', pageSize = 50} = options;
-        return `${this.url}${this.tagged}&page=${page}&pagesize=${pageSize}`
+        const { page } = options;
+        return `${this.url}${this.tagged}?page=${page}&type=votes`
     }
 
     /**
@@ -102,7 +91,7 @@ export default class StackOverflowCrawler {
      * @returns {string}
      */
     getQuestionIdByUrl(questionUrl: string): string {
-        const regex = /\/questions\/(\d+)\//gi;
+        const regex = /\/q\/(\d+)/gi;
         const result = regex.exec(questionUrl);
         if (result && result[1]) {
             return result[1].trim();
@@ -110,5 +99,8 @@ export default class StackOverflowCrawler {
             return ''
         }
     }
+
 }
+
+new SegmentFaultCrawler('javascript').run(450, 1000);
 
