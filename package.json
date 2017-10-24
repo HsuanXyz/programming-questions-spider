@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node ./build/main.js"
+    "start": "node ./build/main.js",
+    "sf": "node ./build/script/segmentfault.js",
+    "qt": "node ./build/script/qiita.js"
   },
   "repository": {
     "type": "git",
