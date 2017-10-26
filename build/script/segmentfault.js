@@ -26,9 +26,7 @@ class SegmentFaultCrawler {
     run(start, end) {
         return __awaiter(this, void 0, void 0, function* () {
             this.index = start;
-            this.browser = yield puppeteer.launch({
-                args: ['--proxy-server=socks5://127.0.0.1:1080']
-            });
+            this.browser = yield puppeteer.launch({});
             this.page = yield this.browser.newPage();
             while (this.index < end) {
                 let _start = Date.now();
@@ -39,7 +37,7 @@ class SegmentFaultCrawler {
                 if (results.length > 0) {
                     this.saveQuestions(results);
                 }
-                console.log(`${this.index} \t ${results.length} \t ${(Date.now() - _start) / 1000}s`);
+                console.log(`${this.tagged}: ${this.index} \t ${results.length} \t ${(Date.now() - _start) / 1000}s`);
                 this.index++;
             }
             yield this.browser.close();
@@ -99,4 +97,6 @@ class SegmentFaultCrawler {
 }
 exports.default = SegmentFaultCrawler;
 new SegmentFaultCrawler('javascript').run(450, 1000);
+new SegmentFaultCrawler('php').run(1, 1000);
+new SegmentFaultCrawler('python').run(1, 450);
 //# sourceMappingURL=segmentfault.js.map

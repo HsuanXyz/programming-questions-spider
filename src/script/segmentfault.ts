@@ -25,7 +25,7 @@ export default class SegmentFaultCrawler {
     async run(start, end) {
         this.index = start;
         this.browser = await puppeteer.launch({
-            args: ['--proxy-server=socks5://127.0.0.1:1080']
+            // args: ['--proxy-server=socks5://127.0.0.1:1080']
         });
         this.page = await this.browser.newPage();
 
@@ -38,7 +38,7 @@ export default class SegmentFaultCrawler {
             if (results.length > 0) {
                 this.saveQuestions(results);
             }
-            console.log(`${this.index} \t ${results.length} \t ${(Date.now() - _start)/1000}s`);
+            console.log(`${this.tagged}: ${this.index} \t ${results.length} \t ${(Date.now() - _start)/1000}s`);
             this.index++;
 
         }
@@ -103,4 +103,7 @@ export default class SegmentFaultCrawler {
 }
 
 new SegmentFaultCrawler('javascript').run(450, 1000);
+
+new SegmentFaultCrawler('php').run(1, 1000);
+new SegmentFaultCrawler('python').run(1, 450);
 

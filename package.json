@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node ./build/main.js",
     "sf": "node ./build/script/segmentfault.js",
-    "qt": "node ./build/script/qiita.js"
+    "qt": "node ./build/script/qiita.js",
+    "gh:repo": "node ./build/script/github:repo.js"
   },
   "repository": {
     "type": "git",
@@ -25,6 +26,7 @@
     "@types/puppeteer": "^0.12.0",
     "cheerio": "^1.0.0-rc.2",
     "mongoose": "^4.12.3",
+    "node-fetch": "^1.7.3",
     "puppeteer": "^0.12.0",
     "virtual-html": "^2.0.0"
   }
